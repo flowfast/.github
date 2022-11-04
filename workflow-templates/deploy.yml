@@ -12,8 +12,8 @@ jobs:
       - uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "staging-kaiten-landing-ru"
-          heroku_email: "neemah86@gmail.com"
+          heroku_app_name: ${{ inputs.heroku_app_name }}
+          heroku_email: ${{ inputs.heroku_email }}
           dontautocreate: true
 
       - uses: rtCamp/action-slack-notify@v2
