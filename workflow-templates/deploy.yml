@@ -1,0 +1,27 @@
+name: Deploy to heroku
+
+on:
+  push:
+    branches: [ $default-branch ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "staging-kaiten-landing-ru"
+          heroku_email: "neemah86@gmail.com"
+          dontautocreate: true
+
+      - uses: rtCamp/action-slack-notify@v2
+        if: always()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: Ship it, ship it now!
+          SLACK_ICON_EMOJI: ":ship:"
+          SLACK_FOOTER: ${{ github.repository }}
+          SLACK_COLOR: ${{ job.status }}
+          MSG_MINIMAL: actions url,message,commit
