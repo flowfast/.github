@@ -1,8 +1,14 @@
 name: Deploy to heroku
 
 on:
-  push:
-    branches: [ $default-branch ]
+  workflow_call:
+    inputs:
+      heroku_app_name:
+        required: true
+        type: string
+      heroku_email:
+        required: true
+        type: string
 
 jobs:
   deploy:
