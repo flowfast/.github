@@ -1,5 +1,8 @@
 on:
   workflow_call:
+    secrets:
+      CCI_TOKEN:
+        required: true
 
 jobs:
   verify-package-version:
