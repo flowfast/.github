@@ -1,0 +1,27 @@
+on:
+  push:
+    branches: [$default-branch]
+  pull_request:
+    types: [opened, reopened, synchronize, assigned, edited]
+
+jobs:
+  verify-package-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check package.json version
+        id: 'versionCheck'
+        uses: avides/actions-project-version-check@v1.3.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          file-to-check: package.json
+
+  trigger-circleci:
+    needs: verify-package-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: CircleCI trigger
+        id: 'CircleCI'
+        uses: CircleCI-Public/trigger-circleci-pipeline-action@v1.0.5
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
