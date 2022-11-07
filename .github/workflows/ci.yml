@@ -15,6 +15,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           file-to-check: package.json
+          only-return-version: ${{ github.ref == 'refs/heads/master' }}
 
   trigger-circleci:
     needs: verify-package-version
