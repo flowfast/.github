@@ -27,6 +27,7 @@ jobs:
           heroku_app_name: ${{ inputs.heroku_app_name }}
           heroku_email: ${{ inputs.heroku_email }}
           dontautocreate: true
+          branch: master
 
       - uses: rtCamp/action-slack-notify@v2
         if: always()
