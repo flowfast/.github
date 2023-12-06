@@ -1,0 +1,125 @@
+name: Build and Push docker images to registers
+
+on:
+  workflow_call:
+    inputs:
+      APP_IMAGE_NAME:
+        required: true
+        type: string
+      APP_IMAGE_NAME_DOCKER_HUB:
+        required: true
+        type: string
+    secrets:
+      HARBOR_URL:
+        required: true
+      HARBOR_USER:
+        required: true
+      HARBOR_PASSWORD:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+      DOCKER_USER:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+      SLACK_WEBHOOK:
+        required: true
+
+jobs:
+  docker-build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Get version from package.json
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+
+      - name: Harbor login
+        uses: docker/login-action@v3
+        with:
+          registry: ${{secrets.HARBOR_URL}}
+          username: ${{secrets.HARBOR_USER}}
+          password: ${{secrets.HARBOR_PASSWORD}}
+
+      - name: Docker Hub login
+        uses: docker/login-action@v3
+        with:
+          username: ${{secrets.DOCKER_USER}}
+          password: ${{secrets.DOCKER_PASSWORD}}
+
+      - name: Setup SSH Agent
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          eval "$(ssh-agent -a $SSH_AUTH_SOCK > /dev/null)"
+          ssh-add - <<< '${{ secrets.SSH_PRIVATE_KEY }}'
+
+      - name: Build and Push to Harbor and Docker Hub
+        uses: docker/build-push-action@v5.1.0
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        with:
+          context: .
+          ssh:
+            default=${{ env.SSH_AUTH_SOCK }}
+          build-args: REGISTRY_URL=${{secrets.HARBOR_URL}}/
+          push: true
+          tags: |
+            ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME}}:${{steps.package-version.outputs.current-version}}
+            ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
+            ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
+  
+      - name: Slack send
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "Build result: ${{ job.status }}\nRepository: ${{github.repository}}\nBranch: ${{github.ref_name}}\nActor: ${{github.actor}}\nCommit: ${{github.sha}}\nImage: ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Build result:* ${{job.status}}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:* ${{github.repository}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:* ${{github.ref_name}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Image:* ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Actor:* ${{github.actor}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:* ${{github.sha}}"
+                    }
+                  ]   
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit url:* ${{github.event.pull_request.html_url || github.event.head_commit.url}}"
+                    }
+                  ]
+                }
+              ]
+            }            
+        env: 
+          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK}}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
