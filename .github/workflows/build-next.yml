@@ -70,18 +70,28 @@ jobs:
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
   
-      - name: Slack send
+  slack:
+    if: ${{ always() }}
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Get version from package.json
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+      
+      - name: Slack send message
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "Build result: ${{ job.status }}\nRepository: ${{github.repository}}\nBranch: ${{github.ref_name}}\nActor: ${{github.actor}}\nCommit: ${{github.sha}}\nImage: ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Build result:* ${{job.status}}"
+                    "text": " :rocket: *Build result:* ${{needs.docker-build-push.result}} :rocket:"
                   }
                 },
                 {
@@ -102,10 +112,6 @@ jobs:
                     {
                       "type": "mrkdwn",
                       "text": "*Actor:* ${{github.actor}}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Commit:* ${{github.sha}}"
                     }
                   ]   
                 },
@@ -123,3 +129,4 @@ jobs:
         env: 
           SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK}}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
