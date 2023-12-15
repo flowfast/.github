@@ -6,15 +6,15 @@ on:
       APP_IMAGE_NAME:
         required: true
         type: string
-      APP_IMAGE_NAME_CRON_IMPORT:
-        required: false
-        type: string
+      #APP_IMAGE_NAME_CRON_IMPORT:
+      #  required: false
+      #  type: string
       APP_IMAGE_NAME_DOCKER_HUB:
         required: true
         type: string
-      APP_IMAGE_NAME_DOCKER_HUB_CRON_IMPORT:
-        required: false
-        type: string
+      #APP_IMAGE_NAME_DOCKER_HUB_CRON_IMPORT:
+      #  required: false
+      #  type: string
     secrets:
       HARBOR_URL:
         required: true
