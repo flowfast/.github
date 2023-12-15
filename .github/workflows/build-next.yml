@@ -6,7 +6,13 @@ on:
       APP_IMAGE_NAME:
         required: true
         type: string
+      APP_IMAGE_NAME_CRON_IMPORT:
+        required: true
+        type: string
       APP_IMAGE_NAME_DOCKER_HUB:
+        required: true
+        type: string
+      APP_IMAGE_NAME_DOCKER_HUB_CRON_IMPORT:
         required: true
         type: string
     secrets:
@@ -67,8 +73,11 @@ jobs:
           push: true
           tags: |
             ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME}}:${{steps.package-version.outputs.current-version}}
+            ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME_CRON_IMPORT}}:${{steps.package-version.outputs.current-version}}
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
+            ${{inputs.APP_IMAGE_NAME_DOCKER_HUB_CRON_IMPORT}}:${{steps.package-version.outputs.current-version}}
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
+            ${{inputs.APP_IMAGE_NAME_DOCKER_HUB_CRON_IMPORT}}:latest
   
   slack:
     if: ${{ always() }}
