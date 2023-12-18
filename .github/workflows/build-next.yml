@@ -6,15 +6,9 @@ on:
       APP_IMAGE_NAME:
         required: true
         type: string
-      #APP_IMAGE_NAME_CRON_IMPORT:
-      #  required: false
-      #  type: string
       APP_IMAGE_NAME_DOCKER_HUB:
         required: true
         type: string
-      #APP_IMAGE_NAME_DOCKER_HUB_CRON_IMPORT:
-      #  required: false
-      #  type: string
     secrets:
       HARBOR_URL:
         required: true
@@ -76,8 +70,8 @@ jobs:
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
   
-  slack:
-    if: ${{ always() }}
+  slack_send_ok:
+    if: ${{ success() }}
     needs: docker-build-push
     runs-on: ubuntu-latest
     steps:
@@ -97,7 +91,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": " :rocket: *Build result:* ${{needs.docker-build-push.result}} :rocket:"
+                    "text": ":building_construction: *BUILD:* ${{needs.docker-build-push.result}} :white_check_mark:"
                   }
                 },
                 {
@@ -136,3 +130,62 @@ jobs:
           SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK}}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
+  slack_send_not_ok:
+    if: ${{ failure() }}
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Get version from package.json
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+      
+      - name: Slack send message
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":building_construction: *BUILD:* ${{needs.docker-build-push.result}} :x:"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:* ${{github.repository}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:* ${{github.ref_name}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Image:* ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Actor:* ${{github.actor}}"
+                    }
+                  ]   
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit url:* ${{github.event.pull_request.html_url || github.event.head_commit.url}}"
+                    }
+                  ]
+                }
+              ]
+            }            
+        env: 
+          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK}}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
