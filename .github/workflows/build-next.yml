@@ -70,8 +70,8 @@ jobs:
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
   
-  slack_send_ok:
-    if: ${{ success() }}
+  slack_send:
+    if: ${{ always() }}
     needs: docker-build-push
     runs-on: ubuntu-latest
     steps:
@@ -80,7 +80,18 @@ jobs:
       - name: Get version from package.json
         id: package-version
         uses: martinbeentjes/npm-get-version-action@v1.3.1
-      
+
+      - name: Get results
+        id: get_results
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ${{ needs.docker-build-push.result == 'success' }}
+            then echo "RESULT_EMOJI=:white_check_mark:" >> "$GITHUB_OUTPUT"
+            else echo "RESULT_EMOJI=:rotating_light:" >> "$GITHUB_OUTPUT"
+          fi
+          echo "ACTION_URL=$(gh run --repo ${{ github.repository }} view ${{ github.run_id }} --json jobs --jq '.jobs[] | select(.name == "docker-build-push") | .url')" >> "$GITHUB_OUTPUT"
+
       - name: Slack send message
         uses: slackapi/slack-github-action@v1.24.0
         with:
@@ -91,7 +102,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":building_construction: *BUILD:* ${{needs.docker-build-push.result}} :white_check_mark:"
+                    "text": ":building_construction: *BUILD:* ${{needs.docker-build-push.result}} ${{ steps.get_results.outputs.RESULT_EMOJI }}"
                   }
                 },
                 {
@@ -121,6 +132,10 @@ jobs:
                     {
                       "type": "mrkdwn",
                       "text": "*Commit url:* ${{github.event.pull_request.html_url || github.event.head_commit.url}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Action url:* ${{ steps.get_results.outputs.ACTION_URL }}"
                     }
                   ]
                 }
@@ -130,62 +145,3 @@ jobs:
           SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK}}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
-  slack_send_not_ok:
-    if: ${{ failure() }}
-    needs: docker-build-push
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4.1.1
-
-      - name: Get version from package.json
-        id: package-version
-        uses: martinbeentjes/npm-get-version-action@v1.3.1
-      
-      - name: Slack send message
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          payload: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ":building_construction: *BUILD:* ${{needs.docker-build-push.result}} :x:"
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Repository:* ${{github.repository}}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Branch:* ${{github.ref_name}}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Image:* ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Actor:* ${{github.actor}}"
-                    }
-                  ]   
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Commit url:* ${{github.event.pull_request.html_url || github.event.head_commit.url}}"
-                    }
-                  ]
-                }
-              ]
-            }            
-        env: 
-          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK}}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
