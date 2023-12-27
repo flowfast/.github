@@ -1,0 +1,80 @@
+name: Send Slack message on tests results
+
+on:
+  workflow_call:
+    inputs:
+      result:
+        required: true
+        type: string
+      result_emoji:
+        required: true
+        type: string
+      action_url:
+        required: true
+        type: string
+    secrets:
+      SLACK_WEBHOOK:
+        required: true
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Get version from package.json
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+      
+      - name: Slack send message
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":memo: *TEST:* ${{inputs.result}} ${{inputs.result_emoji}}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:* ${{github.repository}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:* ${{github.ref_name}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Version:* ${{steps.package-version.outputs.current-version}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Actor:* ${{github.actor}}"
+                    }
+                  ]   
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit url:* ${{github.event.pull_request.html_url || github.event.head_commit.url}}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Action url:* ${{inputs.action_url}}"
+                    }
+                  ]
+                }
+              ]
+            }            
+        env: 
+          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK}}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
