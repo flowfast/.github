@@ -3,30 +3,21 @@ name: Send Slack message on tests results
 on:
   workflow_call:
     inputs:
-      APP_IMAGE_NAME:
+      result:
         required: true
         type: string
-      APP_IMAGE_NAME_DOCKER_HUB:
+      result_emoji:
+        required: true
+        type: string
+      action_url:
         required: true
         type: string
     secrets:
-      HARBOR_URL:
-        required: true
-      HARBOR_USER:
-        required: true
-      HARBOR_PASSWORD:
-        required: true
-      SSH_PRIVATE_KEY:
-        required: true
-      DOCKER_USER:
-        required: true
-      DOCKER_PASSWORD:
-        required: true
       SLACK_WEBHOOK:
         required: true
 
 jobs:
-  docker-build-push:
+  send:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.1.1
@@ -34,64 +25,7 @@ jobs:
       - name: Get version from package.json
         id: package-version
         uses: martinbeentjes/npm-get-version-action@v1.3.1
-
-      - name: Harbor login
-        uses: docker/login-action@v3
-        with:
-          registry: ${{secrets.HARBOR_URL}}
-          username: ${{secrets.HARBOR_USER}}
-          password: ${{secrets.HARBOR_PASSWORD}}
-
-      - name: Docker Hub login
-        uses: docker/login-action@v3
-        with:
-          username: ${{secrets.DOCKER_USER}}
-          password: ${{secrets.DOCKER_PASSWORD}}
-
-      - name: Setup SSH Agent
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-          eval "$(ssh-agent -a $SSH_AUTH_SOCK > /dev/null)"
-          ssh-add - <<< '${{ secrets.SSH_PRIVATE_KEY }}'
-
-      - name: Build and Push to Harbor and Docker Hub
-        uses: docker/build-push-action@v5.1.0
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        with:
-          context: .
-          ssh:
-            default=${{ env.SSH_AUTH_SOCK }}
-          build-args: REGISTRY_URL=${{secrets.HARBOR_URL}}/
-          push: true
-          tags: |
-            ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME}}:${{steps.package-version.outputs.current-version}}
-            ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
-            ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
-  
-  slack_send:
-    if: ${{ always() }}
-    needs: docker-build-push
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4.1.1
-
-      - name: Get version from package.json
-        id: package-version
-        uses: martinbeentjes/npm-get-version-action@v1.3.1
-
-      - name: Get results
-        id: get_results
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if ${{ needs.docker-build-push.result == 'success' }}
-            then echo "RESULT_EMOJI=:white_check_mark:" >> "$GITHUB_OUTPUT"
-            else echo "RESULT_EMOJI=:rotating_light:" >> "$GITHUB_OUTPUT"
-          fi
-          echo "ACTION_URL=$(gh run --repo ${{ github.repository }} view ${{ github.run_id }} --json jobs --jq '.jobs[] | select(.name == "deploy / docker-build-push") | .url')" >> "$GITHUB_OUTPUT"
-
+      
       - name: Slack send message
         uses: slackapi/slack-github-action@v1.24.0
         with:
@@ -102,7 +36,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":building_construction: *BUILD:* ${{needs.docker-build-push.result}} ${{ steps.get_results.outputs.RESULT_EMOJI }}"
+                    "text": ":memo: *TEST:* ${{inputs.result}} ${{inputs.result_emoji}}"
                   }
                 },
                 {
@@ -118,7 +52,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*Image:* ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}"
+                      "text": "*Version:* ${{steps.package-version.outputs.current-version}}"
                     },
                     {
                       "type": "mrkdwn",
@@ -135,7 +69,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*Action url:* ${{ steps.get_results.outputs.ACTION_URL }}"
+                      "text": "*Action url:* ${{inputs.action_url}}"
                     }
                   ]
                 }
@@ -144,4 +78,3 @@ jobs:
         env: 
           SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK}}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
