@@ -11,7 +11,7 @@ on:
         type: string
 
 jobs:
-  print:
+  send:
     runs-on: ubuntu-latest
     steps:
       - name: Print vars
