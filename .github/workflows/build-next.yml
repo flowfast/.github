@@ -70,7 +70,7 @@ jobs:
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
   
-  slack_send:
+  slack-send:
     if: ${{ always() }}
     needs: docker-build-push
     runs-on: ubuntu-latest
