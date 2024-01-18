@@ -1,0 +1,44 @@
+name: kubernetes-rescaling
+
+on:
+  workflow_call:
+    inputs:
+      ENV_FILE:
+        required: true
+        type: string
+      KUBE_SCALE_SCRIPT:
+        required: true
+        type: string
+    secrets:
+      KUBECONFIG:
+        required: true
+
+jobs:
+  kubernetes-scale-deploymets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+  
+    steps:
+    
+      - name: Git clone repo
+        uses: actions/checkout@v3
+
+      - name: Import environment variables from a file
+        shell: bash
+        run: cat ${{ inputs.ENV_FILE }} >> $GITHUB_ENV
+        
+      - name: "Configure kubeconfig"
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      - name: "Setup client-keystone-auth plugin"
+        run: |
+          curl -sSL https://hub.mcs.mail.ru/repository/client-keystone-auth/latest/linux/client-install.sh | bash
+          echo "$HOME/vk-cloud-solutions/bin" >> $GITHUB_PATH
+          source ~/.bashrc
+
+      - name: Kubectl rescale apps
+        run: | 
+          ${{ inputs.KUBE_SCALE_SCRIPT }}
