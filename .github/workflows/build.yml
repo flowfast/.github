@@ -17,15 +17,15 @@ on:
         required: true
 
       WEBPACK_SENTRY_AUTH_TOKEN:
-        required: false
+        required: true
       WEBPACK_SENTRY_ENABLED:
-        required: false
+        required: true
       WEBPACK_SENTRY_ORG:
-        required: false
+        required: true
       WEBPACK_SENTRY_PROJECT:
-        required: false
+        required: true
       WEBPACK_DEVTOOL:
-        required: false
+        required: true
 
 jobs:
   docker:
