@@ -24,6 +24,14 @@ on:
         required: true
       SLACK_WEBHOOK:
         required: true
+      WEBPACK_SENTRY_AUTH_TOKEN:
+        required: true
+      WEBPACK_SENTRY_ORG:
+        required: true
+      WEBPACK_SENTRY_PROJECT:
+        required: true
+      WEBPACK_DEVTOOL:
+        required: true
 
 jobs:
   docker-build-push:
@@ -59,6 +67,12 @@ jobs:
         uses: docker/build-push-action@v5.1.0
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          WEBPACK_SENTRY_AUTH_TOKEN: ${{secrets.WEBPACK_SENTRY_AUTH_TOKEN}}
+          WEBPACK_SENTRY_ENABLED: true
+          WEBPACK_SENTRY_ORG: ${{secrets.WEBPACK_SENTRY_ORG}}
+          WEBPACK_SENTRY_PROJECT: ${{secrets.WEBPACK_SENTRY_PROJECT}}
+          WEBPACK_DEVTOOL: ${{secrets.WEBPACK_DEVTOOL}}
+
         with:
           context: .
           ssh:
@@ -69,7 +83,7 @@ jobs:
             ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME}}:${{steps.package-version.outputs.current-version}}
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
-  
+
   slack-send:
     if: ${{ always() }}
     needs: docker-build-push
@@ -140,8 +154,8 @@ jobs:
                   ]
                 }
               ]
-            }            
-        env: 
+            }
+        env:
           SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK}}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
