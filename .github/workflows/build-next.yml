@@ -67,18 +67,17 @@ jobs:
         uses: docker/build-push-action@v5.1.0
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          WEBPACK_SENTRY_AUTH_TOKEN: ${{secrets.WEBPACK_SENTRY_AUTH_TOKEN}}
+          WEBPACK_SENTRY_ENABLED: true
+          WEBPACK_SENTRY_ORG: ${{secrets.WEBPACK_SENTRY_ORG}}
+          WEBPACK_SENTRY_PROJECT: ${{secrets.WEBPACK_SENTRY_PROJECT}}
+          WEBPACK_DEVTOOL: ${{secrets.WEBPACK_DEVTOOL}}
 
         with:
           context: .
           ssh:
             default=${{ env.SSH_AUTH_SOCK }}
-          build-args: |
-            REGISTRY_URL=${{secrets.HARBOR_URL}}
-            WEBPACK_SENTRY_AUTH_TOKEN=${{secrets.WEBPACK_SENTRY_AUTH_TOKEN}}
-            WEBPACK_SENTRY_ENABLED=true
-            WEBPACK_SENTRY_ORG=${{secrets.WEBPACK_SENTRY_ORG}}
-            WEBPACK_SENTRY_PROJECT=${{secrets.WEBPACK_SENTRY_PROJECT}}
-            WEBPACK_DEVTOOL=${{secrets.WEBPACK_DEVTOOL}}
+          build-args: REGISTRY_URL=${{secrets.HARBOR_URL}} \
           push: true
           tags: |
             ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME}}:${{steps.package-version.outputs.current-version}}
