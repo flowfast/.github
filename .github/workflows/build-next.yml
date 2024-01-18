@@ -77,7 +77,7 @@ jobs:
           context: .
           ssh:
             default=${{ env.SSH_AUTH_SOCK }}
-          build-args: REGISTRY_URL=${{secrets.HARBOR_URL}} \
+          build-args: REGISTRY_URL=${{secrets.HARBOR_URL}}/
           push: true
           tags: |
             ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME}}:${{steps.package-version.outputs.current-version}}
