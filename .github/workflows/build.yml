@@ -15,7 +15,6 @@ on:
         required: true
       SSH_PRIVATE_KEY:
         required: true
-
       WEBPACK_SENTRY_AUTH_TOKEN:
         required: true
       WEBPACK_SENTRY_ENABLED:
