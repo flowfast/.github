@@ -17,8 +17,6 @@ on:
         required: true
       WEBPACK_SENTRY_AUTH_TOKEN:
         required: true
-      WEBPACK_SENTRY_ENABLED:
-        required: true
       WEBPACK_SENTRY_ORG:
         required: true
       WEBPACK_SENTRY_PROJECT:
@@ -62,7 +60,7 @@ jobs:
           build-args:
             REGISTRY_URL: ${{secrets.HARBOR_URL}}
             WEBPACK_SENTRY_AUTH_TOKEN: ${{secrets.WEBPACK_SENTRY_AUTH_TOKEN}}
-            WEBPACK_SENTRY_ENABLED: ${{secrets.WEBPACK_SENTRY_ENABLED}}
+            WEBPACK_SENTRY_ENABLED: true
             WEBPACK_SENTRY_ORG: ${{secrets.WEBPACK_SENTRY_ORG}}
             WEBPACK_SENTRY_PROJECT: ${{secrets.WEBPACK_SENTRY_PROJECT}}
             WEBPACK_DEVTOOL: ${{secrets.WEBPACK_DEVTOOL}}
