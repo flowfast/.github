@@ -1,0 +1,49 @@
+name: terraform-apply
+
+on:
+  workflow_call:
+    inputs:
+        TERRAFORM_VERSION:
+          required: true
+          type: string
+        CLOUD_PLATFORM:
+          required: true
+          type: string
+        CLUSTER:
+          required: true
+          type: string
+    secrets:
+        AWS_ACCESS_KEY_ID:
+            required: true
+        AWS_SECRET_ACCESS_KEY:
+            required: true
+        VKCLOUD_USERNAME:
+            required: true
+        VKCLOUD_PASSWORD:
+            required: true
+
+jobs:
+  terraform-init-and-apply:
+    env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+        run:
+          working-directory: kubeClusters/${{ inputs.CLOUD_PLATFORM }}/${{ inputs.CLUSTER }}/terraform
+    steps:
+      
+      - name: Git clone repo
+        uses: actions/checkout@v3
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ inputs.TERRAFORM_VERSION }}
+            
+      - name: Terraform Init
+        run: terraform init -var 'vkcloud_username=${{ secrets.VKCLOUD_USERNAME }}' -var 'vkcloud_password=${{ secrets.VKCLOUD_PASSWORD }}' -var 'skip_credentials_validation=true' -var 'skip_region_validation=true'
+      
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -var 'vkcloud_username=${{ secrets.VKCLOUD_USERNAME }}' -var 'vkcloud_password=${{ secrets.VKCLOUD_PASSWORD }}'
