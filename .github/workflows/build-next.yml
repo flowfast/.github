@@ -108,7 +108,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":building_construction: *BUILD:* ${{needs.docker-build-push.result}} ${{ steps.get_results.outputs.RESULT_EMOJI }}"
+                    "text": ":package: *Build docker image:* ${{needs.docker-build-push.result}} ${{ steps.get_results.outputs.RESULT_EMOJI }}"
                   }
                 },
                 {
@@ -133,15 +133,23 @@ jobs:
                   ]   
                 },
                 {
-                  "type": "section",
-                  "fields": [
+                  "type": "actions",
+                  "elements": [
                     {
-                      "type": "mrkdwn",
-                      "text": "*Commit url:* ${{github.event.pull_request.html_url || github.event.head_commit.url}}"
+                      "type": "button",
+                      "url": "${{ steps.get_results.outputs.ACTION_URL }}",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Action log"
+                      },
                     },
                     {
-                      "type": "mrkdwn",
-                      "text": "*Action url:* ${{ steps.get_results.outputs.ACTION_URL }}"
+                      "type": "button",
+                      "url": "${{github.event.pull_request.html_url || github.event.head_commit.url}}",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Commit"
+                      },
                     }
                   ]
                 }
