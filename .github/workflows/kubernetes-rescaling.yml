@@ -9,6 +9,9 @@ on:
       KUBE_SCALE_SCRIPT:
         required: true
         type: string
+      SHRINK_REPLIC_COUNTS:
+          required: true
+          type: boolean
     secrets:
       KUBECONFIG:
         required: true
@@ -22,6 +25,11 @@ jobs:
     
       - name: Git clone repo
         uses: actions/checkout@v3
+
+      - name: Set count of replics to 0
+        if: inputs.SHRINK_REPLIC_COUNTS == true
+        run: |
+          sed -i 's/^\(KAITEN_[A-Z_]*COUNT=\)[0-9]*$/\10/g' ${{ inputs.ENV_FILE }}
 
       - name: Import environment variables from a file
         shell: bash

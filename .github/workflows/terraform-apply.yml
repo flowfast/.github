@@ -12,6 +12,9 @@ on:
         CLUSTER:
           required: true
           type: string
+        CLUSTER_SHRINK:
+          required: true
+          type: boolean
     secrets:
         AWS_ACCESS_KEY_ID:
             required: true
@@ -36,6 +39,11 @@ jobs:
       
       - name: Git clone repo
         uses: actions/checkout@v3
+
+      - name: Remove tf file for app node groups
+        if: inputs.CLUSTER_SHRINK == true
+        run: |
+          rm -f apps_node_groups.tf
       
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
