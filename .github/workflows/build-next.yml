@@ -141,7 +141,7 @@ jobs:
                       "text": {
                         "type": "plain_text",
                         "text": "Action log"
-                      },
+                      }
                     },
                     {
                       "type": "button",
@@ -149,7 +149,7 @@ jobs:
                       "text": {
                         "type": "plain_text",
                         "text": "Commit"
-                      },
+                      }
                     }
                   ]
                 }
