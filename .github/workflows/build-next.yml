@@ -12,6 +12,9 @@ on:
       NODE_OPTIONS:
         required: false
         type: string
+      SENTRY_ENABLED:
+        required: false
+        type: boolean
     secrets:
       HARBOR_URL:
         required: true
@@ -27,6 +30,12 @@ on:
         required: true
       SLACK_WEBHOOK:
         required: true
+      SENTRY_CLI_ORG:
+        required: false
+      SENTRY_CLI_PROJECT:
+        required: false
+      SENTRY_CLI_AUTH_TOKEN:
+        required: false
 
 jobs:
   docker-build-push:
@@ -70,6 +79,10 @@ jobs:
           build-args: |
             REGISTRY_URL=${{secrets.HARBOR_URL}}/
             NODE_OPTIONS=${{inputs.NODE_OPTIONS}}
+            SENTRY_ENABLED=${{inputs.SENTRY_ENABLED}}
+            SENTRY_CLI_ORG=${{secrets.SENTRY_CLI_ORG}}
+            SENTRY_CLI_PROJECT=${{secrets.SENTRY_CLI_PROJECT}}
+            SENTRY_CLI_AUTH_TOKEN=${{secrets.SENTRY_CLI_AUTH_TOKEN}}
           push: true
           tags: |
             ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME}}:${{steps.package-version.outputs.current-version}}
