@@ -52,6 +52,27 @@ jobs:
       - name: Git clone repo
         uses: actions/checkout@v3
 
+      - name: Login to Docker registry
+        if: inputs.UPDATE_CONTAINERS_VERSIONS == true
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.REGISTRY_NAME }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Update containers versions
+        if: inputs.UPDATE_CONTAINERS_VERSIONS == true
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          KEEL_USERNAME: ${{ secrets.KEEL_USERNAME }}
+          KEEL_PASSWORD: ${{ secrets.KEEL_PASSWORD }}
+          REGISTRY_NAME: ${{ inputs.REGISTRY_NAME }}
+          REGISTRY_NAMESPACE: ${{ inputs.REGISTRY_NAMESPACE }}
+          REPOSITORIES: ${{ inputs.REPOSITORIES }}
+          KEEL_URL: ${{ inputs.KEEL_URL }}
+        run: ${{ inputs.PATH_TO_UPDATER_VERSIONS_SCRIPT }}
+
       - name: Set count of replics to 0
         if: inputs.SHRINK_REPLIC_COUNTS == true
         run: |
@@ -76,24 +97,3 @@ jobs:
       - name: Kubectl rescale apps
         run: | 
           ${{ inputs.KUBE_SCALE_SCRIPT }}
-
-      - name: Login to Docker registry
-        if: inputs.UPDATE_CONTAINERS_VERSIONS == true
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ inputs.REGISTRY_NAME }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-  
-      - name: Update containers versions
-        if: inputs.UPDATE_CONTAINERS_VERSIONS == true
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          KEEL_USERNAME: ${{ secrets.KEEL_USERNAME }}
-          KEEL_PASSWORD: ${{ secrets.KEEL_PASSWORD }}
-          REGISTRY_NAME: ${{ inputs.REGISTRY_NAME }}
-          REGISTRY_NAMESPACE: ${{ inputs.REGISTRY_NAMESPACE }}
-          REPOSITORIES: ${{ inputs.REPOSITORIES }}
-          KEEL_URL: ${{ inputs.KEEL_URL }}
-        run: ${{ inputs.PATH_TO_UPDATER_VERSIONS_SCRIPT }}
