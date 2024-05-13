@@ -99,7 +99,7 @@ jobs:
           echo "ACTION_URL=$(gh run --repo ${{ github.repository }} view ${{ github.run_id }} --json jobs --jq '.jobs[] | select(.name == "deploy / docker-build-push") | .url')" >> "$GITHUB_OUTPUT"
 
       - name: Slack send message
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |
             {
