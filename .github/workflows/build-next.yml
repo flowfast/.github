@@ -27,6 +27,8 @@ on:
         required: true
       SLACK_WEBHOOK:
         required: true
+      SENTRY_AUTH_TOKEN:
+        required: true
 
 jobs:
   docker-build-push:
@@ -69,7 +71,8 @@ jobs:
             default=${{ env.SSH_AUTH_SOCK }}
           build-args: |
             REGISTRY_URL=${{secrets.HARBOR_URL}}/
-            NODE_OPTIONS=${{inputs.NODE_OPTIONS}}
+            NODE_OPTIONS=${{inputs.NODE_OPTIONS}}/
+            SENTRY_AUTH_TOKEN=${{secrets.SENTRY_AUTH_TOKEN}}
           push: true
           tags: |
             ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME}}:${{steps.package-version.outputs.current-version}}
