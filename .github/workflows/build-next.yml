@@ -12,6 +12,10 @@ on:
       NODE_OPTIONS:
         required: false
         type: string
+      ISSUES_TRACKER_ENABLED:
+        required: false
+        type: boolean
+
     secrets:
       HARBOR_URL:
         required: true
@@ -27,6 +31,8 @@ on:
         required: true
       SLACK_WEBHOOK:
         required: true
+      ISSUES_TRACKER_AUTH_TOKEN:
+        required: false
 
 jobs:
   docker-build-push:
@@ -70,6 +76,8 @@ jobs:
           build-args: |
             REGISTRY_URL=${{secrets.HARBOR_URL}}/
             NODE_OPTIONS=${{inputs.NODE_OPTIONS}}
+            ISSUES_TRACKER_ENABLED=${{inputs.ISSUES_TRACKER_ENABLED}}
+            ISSUES_TRACKER_AUTH_TOKEN=${{secrets.ISSUES_TRACKER_AUTH_TOKEN}}
           push: true
           tags: |
             ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME}}:${{steps.package-version.outputs.current-version}}
