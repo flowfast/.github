@@ -167,7 +167,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK}}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
-      - name: MM send message
+      - name: Mattermost send message
         # You may pin to the exact commit or the version.
         # uses: mattermost/action-mattermost-notify@b7d118e440bf2749cd18a4a8c88e7092e696257a
         uses: mattermost/action-mattermost-notify@2.0.0
