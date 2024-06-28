@@ -84,7 +84,7 @@ jobs:
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
 
-  slack-send:
+  mattermost-send:
     if: ${{ always() }}
     needs: docker-build-push
     runs-on: ubuntu-latest
@@ -106,87 +106,14 @@ jobs:
           fi
           echo "ACTION_URL=$(gh run --repo ${{ github.repository }} view ${{ github.run_id }} --json jobs --jq '.jobs[] | select(.name == "deploy / docker-build-push") | .url')" >> "$GITHUB_OUTPUT"
 
-      - name: Slack send message
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          payload: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ":package: *Build docker image:* ${{needs.docker-build-push.result}} ${{ steps.get_results.outputs.RESULT_EMOJI }}"
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Repository:* ${{github.repository}}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Branch:* ${{github.ref_name}}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Image:* ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Actor:* ${{github.actor}}"
-                    }
-                  ]   
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                      "type": "button",
-                      "url": "${{ steps.get_results.outputs.ACTION_URL }}",
-                      "text": {
-                        "type": "plain_text",
-                        "text": "Action log"
-                      }
-                    },
-                    {
-                      "type": "button",
-                      "url": "${{github.event.pull_request.html_url || github.event.head_commit.url}}",
-                      "text": {
-                        "type": "plain_text",
-                        "text": "Commit"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{secrets.SLACK_WEBHOOK}}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
       - name: Mattermost send message
-        # You may pin to the exact commit or the version.
-        # uses: mattermost/action-mattermost-notify@b7d118e440bf2749cd18a4a8c88e7092e696257a
         uses: mattermost/action-mattermost-notify@2.0.0
         with:
-          # The Mattermost Incoming Webhook URL
           MATTERMOST_WEBHOOK_URL: https://chat.kaiten-dev.ru/hooks/9fe8t4m4c3fx9dzia9ix9kgz9a
-          # The Mattermost channel to sent the message
           MATTERMOST_CHANNEL: deployment
-          # The Mattermost username shown in the webhook
           MATTERMOST_USERNAME: github
-          # The Mattermost Icon URL for the webhook
-          #MATTERMOST_ICON_URL: # optional
-          # The text for the webhook message
           TEXT: |
             ###### :package: **Build docker image:** ${{needs.docker-build-push.result}} ${{ steps.get_results.outputs.RESULT_EMOJI }}
             **Image:** ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}      **Actor:** ${{github.actor}}
             :white_small_square: [**Action log**](${{ steps.get_results.outputs.ACTION_URL }})   [**Commit**](${{github.event.pull_request.html_url || github.event.head_commit.url}})
-          # The payload for the webhook
-          #PAYLOAD: # optional
-          # The payload file for the webhook
-          #PAYLOAD_FILENAME: # optional, default is mattermost.json
               
