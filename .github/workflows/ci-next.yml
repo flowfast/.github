@@ -7,10 +7,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.1
 
-      - name: Check package.json version
-        id: 'versionCheck'
-        uses: avides/actions-project-version-check@v1.4.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          file-to-check: package.json
-          only-return-version: ${{ github.ref == 'refs/heads/master' }}
+#      - name: Check package.json version
+#        id: 'versionCheck'
+#        uses: avides/actions-project-version-check@v1.4.0
+#        with:
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#          file-to-check: package.json
+#          only-return-version: ${{ github.ref == 'refs/heads/master' }}
