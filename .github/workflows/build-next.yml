@@ -30,7 +30,7 @@ on:
       DOCKER_PASSWORD:
         required: true
       SLACK_WEBHOOK:
-        required: true
+        required: false
       ISSUES_TRACKER_AUTH_TOKEN:
         required: false
 
