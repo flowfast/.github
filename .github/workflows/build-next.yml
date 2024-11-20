@@ -13,7 +13,7 @@ on:
         required: false
         type: string
       ISSUES_TRACKER_ENABLED:
-        required: false
+        required: true
         type: boolean
 
     secrets:
@@ -116,4 +116,3 @@ jobs:
             ###### :package: **Build docker image:** ${{needs.docker-build-push.result}} ${{ steps.get_results.outputs.RESULT_EMOJI }}
             **Image:** ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}      **Actor:** ${{github.actor}}
             :white_small_square: [**Action log**](${{ steps.get_results.outputs.ACTION_URL }})   [**Commit**](${{github.event.pull_request.html_url || github.event.head_commit.url}})
-              
