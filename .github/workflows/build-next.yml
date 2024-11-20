@@ -13,7 +13,7 @@ on:
         required: false
         type: string
       ISSUES_TRACKER_ENABLED:
-        required: true
+        required: false
         type: boolean
 
     secrets:
