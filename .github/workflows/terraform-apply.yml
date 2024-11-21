@@ -53,5 +53,20 @@ jobs:
       - name: Terraform Init
         run: terraform init -var 'vkcloud_username=${{ secrets.VKCLOUD_USERNAME }}' -var 'vkcloud_password=${{ secrets.VKCLOUD_PASSWORD }}' -var 'skip_credentials_validation=true' -var 'skip_region_validation=true'
       
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -var 'vkcloud_username=${{ secrets.VKCLOUD_USERNAME }}' -var 'vkcloud_password=${{ secrets.VKCLOUD_PASSWORD }}'
+      #- name: Terraform Apply
+      #  run: terraform apply -auto-approve -var 'vkcloud_username=${{ secrets.VKCLOUD_USERNAME }}' -var 'vkcloud_password=${{ secrets.VKCLOUD_PASSWORD }}'
+
+      #- name: Terraform Refresh
+      #  run: terraform plan -refresh-only -var 'vkcloud_username=${{ secrets.VKCLOUD_USERNAME }}' -var 'vkcloud_password=${{ secrets.VKCLOUD_PASSWORD }}'
+
+      - name: Terraform Import
+        run: |
+          terraform import -var 'vkcloud_username=${{ secrets.VKCLOUD_USERNAME }}' -var 'vkcloud_password=${{ secrets.VKCLOUD_PASSWORD }}' vkcs_kubernetes_cluster.k8s-cluster 3c414696-eeef-421f-9fff-1fa8b97ad14e 
+          terraform import -var 'vkcloud_username=${{ secrets.VKCLOUD_USERNAME }}' -var 'vkcloud_password=${{ secrets.VKCLOUD_PASSWORD }}' vkcs_kubernetes_node_group.k8s-node-mini-node fb6a2de6-c086-439c-8e4d-76668d2b83a0 
+
+      - name: Terraform Refresh
+        run: terraform plan -refresh-only -var 'vkcloud_username=${{ secrets.VKCLOUD_USERNAME }}' -var 'vkcloud_password=${{ secrets.VKCLOUD_PASSWORD }}'
+
+      - name: Terraform Plan
+        run: terraform plan -var 'vkcloud_username=${{ secrets.VKCLOUD_USERNAME }}' -var 'vkcloud_password=${{ secrets.VKCLOUD_PASSWORD }}'
+              
