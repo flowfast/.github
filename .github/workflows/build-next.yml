@@ -36,7 +36,9 @@ on:
 
 jobs:
   docker-build-push:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: kaiten-runners
+      labels: build
     steps:
       - uses: actions/checkout@v4.1.1
 
