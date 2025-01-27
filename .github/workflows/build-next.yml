@@ -80,6 +80,7 @@ jobs:
         uses: docker/build-push-action@v6
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          BUILDX_NO_DEFAULT_ATTESTATIONS: 1
         with:
           context: .
           ssh:
