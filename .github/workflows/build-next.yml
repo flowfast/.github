@@ -66,7 +66,7 @@ jobs:
           eval "$(ssh-agent -a $SSH_AUTH_SOCK > /dev/null)"
           ssh-add - <<< '${{ secrets.SSH_PRIVATE_KEY }}'
 
-      - name: Docker meta
+      - name: Gather image metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -92,8 +92,9 @@ jobs:
           push: true
           tags: |
             ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME}}:${{steps.package-version.outputs.current-version}}
-            ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
-            ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
+            
+          #  ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
+          #  ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
           annotations: ${{ steps.meta.outputs.annotations }}
