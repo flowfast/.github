@@ -66,11 +66,20 @@ jobs:
           eval "$(ssh-agent -a $SSH_AUTH_SOCK > /dev/null)"
           ssh-add - <<< '${{ secrets.SSH_PRIVATE_KEY }}'
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          labels: |
+            org.opencontainers.image.vendor=Kaiten
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
       - name: Build and Push to Harbor and Docker Hub
-        uses: docker/build-push-action@v5.1.0
+        uses: docker/build-push-action@v6
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-
         with:
           context: .
           ssh:
@@ -85,6 +94,9 @@ jobs:
             ${{secrets.HARBOR_URL}}/${{inputs.APP_IMAGE_NAME}}:${{steps.package-version.outputs.current-version}}
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:${{steps.package-version.outputs.current-version}}
             ${{inputs.APP_IMAGE_NAME_DOCKER_HUB}}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          annotations: ${{ steps.meta.outputs.annotations }}
 
   mattermost-send:
     if: ${{ always() }}
